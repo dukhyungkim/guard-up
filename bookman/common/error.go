@@ -1,14 +1,18 @@
 package common
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 type Err struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Detail  string `json:"detail"`
+	Code       int    `json:"code"`
+	Message    string `json:"message"`
+	Detail     string `json:"detail"`
+	HTTPStatus int    `json:"-"`
 }
 
-func newErr(code int, message string) func(err error) *Err {
+func newErr(code int, message string, httpStatus int) func(err error) *Err {
 	return func(err error) *Err {
 		var detail string
 		if err != nil {
@@ -16,9 +20,10 @@ func newErr(code int, message string) func(err error) *Err {
 		}
 
 		return &Err{
-			Code:    code,
-			Message: message,
-			Detail:  detail,
+			Code:       code,
+			Message:    message,
+			Detail:     detail,
+			HTTPStatus: httpStatus,
 		}
 	}
 }
@@ -29,13 +34,14 @@ func (e Err) Error() string {
 }
 
 var (
-	ErrInternal           = newErr(1, "please send this message to developer")
-	ErrInvalidRequestBody = newErr(2, "cannot parse request body")
-	ErrInvalidParam       = newErr(3, "cannot parse request param")
+	ErrInternal           = newErr(1, "please send this message to developer", http.StatusInternalServerError)
+	ErrInvalidRequestBody = newErr(2, "cannot parse request body", http.StatusBadRequest)
+	ErrInvalidParam       = newErr(3, "cannot parse request param", http.StatusBadRequest)
 
-	ErrNotFoundBook = newErr(100, "not found book")
-	ErrNotFoundUser = newErr(101, "not found user")
+	ErrNotFoundBook         = newErr(100, "not found book", http.StatusNotFound)
+	ErrNotFoundUser         = newErr(101, "not found user", http.StatusNotFound)
+	ErrNotFoundRentalStatus = newErr(102, "not found rental status", http.StatusNotFound)
+	ErrNotFoundBookOrUser   = newErr(102, "not found book or user", http.StatusNotFound)
 
-	ErrStartRent = newErr(200, "cannot start rent")
-	ErrEndRent   = newErr(201, "cannot end rent")
+	ErrStartRent = newErr(200, "cannot start rent", http.StatusBadRequest)
 )

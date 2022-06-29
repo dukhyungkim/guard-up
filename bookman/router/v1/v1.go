@@ -15,7 +15,14 @@ func SetupRouter(cfg *config.Config, r *gin.Engine) {
 		log.Panicln(err)
 	}
 	bookService := service.NewBookService(bookRepo)
-	bookRouter := NewBookRouter(bookService)
+
+	rentalRepo, err := repository.NewRentalRepo(&cfg.Database)
+	if err != nil {
+		log.Panicln(err)
+	}
+	rentalService := service.NewRentalService(rentalRepo)
+
+	bookRouter := NewBookRouter(bookService, rentalService)
 	bookRouter.SetupRouter(r)
 
 	userRepo, err := repository.NewUserRepo(&cfg.Database)

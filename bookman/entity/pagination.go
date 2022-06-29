@@ -1,7 +1,7 @@
 package entity
 
 type Pagination struct {
-	Offset int
-	Limit  int
-	Total  int
+	Offset int `json:"offset"`
+	Limit  int `json:"limit"`
+	Total  int `json:"total"`
 }
