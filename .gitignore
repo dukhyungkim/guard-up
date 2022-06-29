@@ -1,1 +1,3 @@
-bookman
+.idea
+.DS_Store
+config*.yml
