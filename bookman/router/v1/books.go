@@ -7,10 +7,11 @@ import (
 	"bookman/util"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+const keyBookID = "bookId"
 
 type BooksRouter struct {
 	bookService service.BookService
@@ -26,14 +27,14 @@ func (r *BooksRouter) SetupRouter(router *gin.Engine) {
 	booksGroup := router.Group("/v1/books")
 	booksGroup.POST("", r.createBook)
 	booksGroup.GET("", r.listBooks)
-	booksGroup.PUT(":bookId", r.updateBook)
-	booksGroup.DELETE(":bookId", r.deleteBook)
+	booksGroup.PUT(":"+keyBookID, r.updateBook)
+	booksGroup.DELETE(":"+keyBookID, r.deleteBook)
 
-	booksGroup.POST(":bookId/rent", r.handleRent)
+	booksGroup.POST(":"+keyBookID+"/rent", r.handleRent)
 }
 
 func (r *BooksRouter) createBook(c *gin.Context) {
-	book, err := parseBody[entity.Book](c)
+	book, err := util.ParseBody[entity.Book](c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)
 		return
@@ -65,13 +66,13 @@ func (r *BooksRouter) listBooks(c *gin.Context) {
 }
 
 func (r *BooksRouter) updateBook(c *gin.Context) {
-	bookID, err := parseBookID(c)
+	bookID, err := util.ParseID[int](c, keyBookID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 
-	book, err := parseBody[entity.Book](c)
+	book, err := util.ParseBody[entity.Book](c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)
 		return
@@ -92,7 +93,7 @@ func (r *BooksRouter) updateBook(c *gin.Context) {
 }
 
 func (r *BooksRouter) deleteBook(c *gin.Context) {
-	bookID, err := parseBookID(c)
+	bookID, err := util.ParseID[int](c, keyBookID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err)
 		return
@@ -101,8 +102,9 @@ func (r *BooksRouter) deleteBook(c *gin.Context) {
 	book := &entity.Book{ID: bookID}
 	err = r.bookService.DeleteBook(book)
 	if err != nil {
-		if errors.As(err, &common.Err{}) {
-			c.JSON(http.StatusNotFound, err)
+		var customErr *common.Err
+		if errors.As(err, &customErr) {
+			c.JSON(http.StatusNotFound, customErr)
 			return
 		}
 		c.JSON(http.StatusInternalServerError, err)
@@ -113,21 +115,4 @@ func (r *BooksRouter) deleteBook(c *gin.Context) {
 
 func (r *BooksRouter) handleRent(c *gin.Context) {
 
-}
-
-func parseBookID(c *gin.Context) (int, error) {
-	bookID := c.Param("bookId")
-	id, err := strconv.Atoi(bookID)
-	if err != nil {
-		return 0, common.ErrInvalidParam(err)
-	}
-	return id, nil
-}
-
-func parseBody[T any](c *gin.Context) (*T, error) {
-	var data T
-	if err := c.ShouldBind(&data); err != nil {
-		return nil, common.ErrInvalidRequestBody(err)
-	}
-	return &data, nil
 }

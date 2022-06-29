@@ -22,26 +22,26 @@ func NewBookService(bookRepo repository.BookRepo) BookService {
 	}
 }
 
-func (b *bookService) SaveNewBook(book *entity.Book) (*entity.Book, error) {
-	return b.bookRepo.SaveBook(book)
+func (s *bookService) SaveNewBook(book *entity.Book) (*entity.Book, error) {
+	return s.bookRepo.SaveBook(book)
 }
 
-func (b *bookService) ListBooks(pagination *entity.Pagination) ([]*entity.Book, error) {
-	return b.bookRepo.ListBooks(pagination)
+func (s *bookService) ListBooks(pagination *entity.Pagination) ([]*entity.Book, error) {
+	return s.bookRepo.ListBooks(pagination)
 }
 
-func (b *bookService) UpdateBook(book *entity.Book) (*entity.Book, error) {
-	_, err := b.bookRepo.FetchBook(&entity.Book{ID: book.ID})
+func (s *bookService) UpdateBook(book *entity.Book) (*entity.Book, error) {
+	_, err := s.bookRepo.FetchBook(&entity.Book{ID: book.ID})
 	if err != nil {
 		return nil, err
 	}
-	return b.bookRepo.UpdateBook(book)
+	return s.bookRepo.UpdateBook(book)
 }
 
-func (b *bookService) DeleteBook(book *entity.Book) error {
-	_, err := b.bookRepo.FetchBook(&entity.Book{ID: book.ID})
+func (s *bookService) DeleteBook(book *entity.Book) error {
+	_, err := s.bookRepo.FetchBook(&entity.Book{ID: book.ID})
 	if err != nil {
 		return err
 	}
-	return b.bookRepo.DeleteBook(book)
+	return s.bookRepo.DeleteBook(book)
 }

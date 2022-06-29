@@ -2,9 +2,7 @@ package main
 
 import (
 	"bookman/config"
-	"bookman/repository"
 	v1 "bookman/router/v1"
-	"bookman/service"
 	"fmt"
 	"log"
 	"net/http"
@@ -29,7 +27,7 @@ func main() {
 	}
 
 	r := setupBaseRouter(opts.ProductionMode)
-	setupRouter(cfg, r)
+	v1.SetupRouter(cfg, r)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	if err = r.Run(addr); err != nil {
@@ -57,14 +55,4 @@ func setupBaseRouter(isActivateProdMode bool) *gin.Engine {
 	})
 
 	return r
-}
-
-func setupRouter(cfg *config.Config, r *gin.Engine) {
-	bookRepo, err := repository.NewBookRepo(&cfg.Database)
-	if err != nil {
-		log.Panicln(err)
-	}
-	bookService := service.NewBookService(bookRepo)
-	bookRouter := v1.NewBookRouter(bookService)
-	bookRouter.SetupRouter(r)
 }

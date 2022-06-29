@@ -18,25 +18,23 @@ type BookRepo interface {
 }
 
 type bookRepo struct {
+	repo repo[entity.Book]
 }
 
-func NewBookRepo(rdb *config.RDB) (BookRepo, error) {
-	err := initClient(rdb)
-	if err != nil {
+func NewBookRepo(cfg *config.RDB) (BookRepo, error) {
+	if err := initClient(cfg); err != nil {
 		return nil, err
 	}
 	return &bookRepo{}, nil
 }
 
 func (r *bookRepo) SaveBook(book *entity.Book) (*entity.Book, error) {
-	if err := db.Create(book).Error; err != nil {
-		return nil, err
-	}
-	return book, nil
+	return r.repo.Save(book)
 }
 
 func (r *bookRepo) FetchBook(book *entity.Book) (*entity.Book, error) {
-	if err := db.First(book).Error; err != nil {
+	book, err := r.repo.First(book)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, common.ErrNotFoundBook(err)
 		}
@@ -46,23 +44,13 @@ func (r *bookRepo) FetchBook(book *entity.Book) (*entity.Book, error) {
 }
 
 func (r *bookRepo) ListBooks(pagination *entity.Pagination) ([]*entity.Book, error) {
-	var books []*entity.Book
-	if err := db.Scopes(paginate(books, pagination)).Find(&books).Error; err != nil {
-		return nil, err
-	}
-	return books, nil
+	return r.repo.Find(pagination)
 }
 
 func (r *bookRepo) UpdateBook(book *entity.Book) (*entity.Book, error) {
-	if err := db.Save(book).Error; err != nil {
-		return nil, err
-	}
-	return book, nil
+	return r.repo.Update(book)
 }
 
 func (r *bookRepo) DeleteBook(book *entity.Book) error {
-	if err := db.Delete(book).Error; err != nil {
-		return err
-	}
-	return nil
+	return r.repo.Delete(book)
 }
