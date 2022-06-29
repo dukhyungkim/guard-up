@@ -31,6 +31,7 @@ func (e Err) Error() string {
 var (
 	ErrInternal           = newErr(1, "please send this message to developer")
 	ErrInvalidRequestBody = newErr(2, "cannot parse request body")
+	ErrInvalidParam       = newErr(3, "cannot parse request param")
 
 	ErrNotFoundBook = newErr(100, "not found book")
 	ErrNotFoundUser = newErr(101, "not found user")

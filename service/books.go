@@ -31,15 +31,17 @@ func (b *bookService) ListBooks(pagination *entity.Pagination) ([]*entity.Book, 
 }
 
 func (b *bookService) UpdateBook(book *entity.Book) (*entity.Book, error) {
-	fetchBook, err := b.bookRepo.FetchBook(book)
+	_, err := b.bookRepo.FetchBook(&entity.Book{ID: book.ID})
 	if err != nil {
 		return nil, err
 	}
-	fetchBook.Name = book.Name
-	return b.bookRepo.SaveBook(fetchBook)
+	return b.bookRepo.UpdateBook(book)
 }
 
 func (b *bookService) DeleteBook(book *entity.Book) error {
-	//TODO implement me
-	panic("implement me")
+	_, err := b.bookRepo.FetchBook(&entity.Book{ID: book.ID})
+	if err != nil {
+		return err
+	}
+	return b.bookRepo.DeleteBook(book)
 }
