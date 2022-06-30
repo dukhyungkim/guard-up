@@ -2,7 +2,9 @@ package service
 
 import (
 	"bookman/entity"
+	"bookman/events"
 	"bookman/repository"
+	"log"
 	"time"
 )
 
@@ -13,11 +15,15 @@ type RentalService interface {
 }
 
 type rentalService struct {
-	rentalRepo repository.RentalRepo
+	rentalRepo  repository.RentalRepo
+	eventSender events.EventSender
 }
 
-func NewRentalService(rentalRepo repository.RentalRepo) RentalService {
-	return &rentalService{rentalRepo: rentalRepo}
+func NewRentalService(rentalRepo repository.RentalRepo, eventSender events.EventSender) RentalService {
+	return &rentalService{
+		rentalRepo:  rentalRepo,
+		eventSender: eventSender,
+	}
 }
 
 func (s *rentalService) StartRentBook(bookID, userID int) (*entity.RentalStatus, error) {
@@ -25,9 +31,19 @@ func (s *rentalService) StartRentBook(bookID, userID int) (*entity.RentalStatus,
 		BookID: bookID,
 		UserID: userID,
 		Status: "대여",
-		Start:  time.Now(),
+		Start:  time.Now().Truncate(time.Second),
 	}
-	return s.rentalRepo.SaveRental(&rental)
+	saveRental, err := s.rentalRepo.SaveRental(&rental)
+	if err != nil {
+		return nil, err
+	}
+	saveRental.Start = saveRental.Start.UTC()
+
+	defer func() {
+		go s.eventSender(events.EventStartRental, saveRental)
+	}()
+
+	return saveRental, nil
 }
 
 func (s *rentalService) GetRentStatus(bookID int) (*entity.RentalStatus, error) {
@@ -40,9 +56,20 @@ func (s *rentalService) EndRentBook(bookID, userID int) error {
 		UserID: userID,
 	}
 
-	if _, err := s.rentalRepo.FetchRentalStatus(&rental); err != nil {
+	foundRentalStatus, err := s.rentalRepo.FetchRentalStatus(&rental)
+	if err != nil {
+		return err
+	}
+	foundRentalStatus.Start = foundRentalStatus.Start.UTC()
+
+	err = s.rentalRepo.DeleteRental(&rental)
+	if err != nil {
 		return err
 	}
 
-	return s.rentalRepo.DeleteRental(&rental)
+	defer func() {
+		go s.eventSender(events.EventEndRental, foundRentalStatus)
+	}()
+	log.Println(foundRentalStatus)
+	return nil
 }

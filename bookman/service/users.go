@@ -2,6 +2,7 @@ package service
 
 import (
 	"bookman/entity"
+	"bookman/events"
 	"bookman/repository"
 )
 
@@ -10,21 +11,32 @@ type UserService interface {
 	ListUsers(pagination *entity.Pagination) ([]*entity.User, error)
 	GetUser(user *entity.User) (*entity.User, error)
 	UpdateUser(user *entity.User) (*entity.User, error)
-	DeleteUser(user *entity.User) error
+	DeleteUser(userID int) error
 }
 
 type userService struct {
-	userRepo repository.UserRepo
+	userRepo    repository.UserRepo
+	eventSender events.EventSender
 }
 
-func NewUserService(userRepo repository.UserRepo) UserService {
+func NewUserService(userRepo repository.UserRepo, eventSender events.EventSender) UserService {
 	return &userService{
-		userRepo: userRepo,
+		userRepo:    userRepo,
+		eventSender: eventSender,
 	}
 }
 
 func (s *userService) SaveNewUser(user *entity.User) (*entity.User, error) {
-	return s.userRepo.SaveUser(user)
+	saveUser, err := s.userRepo.SaveUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		go s.eventSender(events.EventAddedUser, saveUser)
+	}()
+
+	return saveUser, nil
 }
 
 func (s *userService) ListUsers(pagination *entity.Pagination) ([]*entity.User, error) {
@@ -40,13 +52,34 @@ func (s *userService) UpdateUser(user *entity.User) (*entity.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.userRepo.UpdateUser(user)
+
+	updateUser, err := s.userRepo.UpdateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		go s.eventSender(events.EventUpdatedUser, updateUser)
+	}()
+
+	return updateUser, nil
 }
 
-func (s *userService) DeleteUser(user *entity.User) error {
-	_, err := s.userRepo.FetchUser(&entity.User{ID: user.ID})
+func (s *userService) DeleteUser(userID int) error {
+	user := &entity.User{ID: userID}
+	foundUser, err := s.userRepo.FetchUser(user)
 	if err != nil {
 		return err
 	}
-	return s.userRepo.DeleteUser(user)
+
+	err = s.userRepo.DeleteUser(user)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		go s.eventSender(events.EventDeletedUser, foundUser)
+	}()
+
+	return nil
 }

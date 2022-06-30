@@ -97,8 +97,7 @@ func (r *BooksRouter) deleteBook(c *gin.Context) {
 		return
 	}
 
-	book := &entity.Book{ID: bookID}
-	err = r.bookService.DeleteBook(book)
+	err = r.bookService.DeleteBook(bookID)
 	if err != nil {
 		util.ResponseError(c, err)
 		return

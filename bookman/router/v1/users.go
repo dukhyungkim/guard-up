@@ -107,8 +107,7 @@ func (r *UsersRouter) deleteUser(c *gin.Context) {
 		return
 	}
 
-	user := &entity.User{ID: userID}
-	err = r.userService.DeleteUser(user)
+	err = r.userService.DeleteUser(userID)
 	if err != nil {
 		util.ResponseError(c, err)
 		return
