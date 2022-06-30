@@ -4,7 +4,6 @@ import (
 	"bookman/entity"
 	"bookman/events"
 	"bookman/repository"
-	"log"
 	"time"
 )
 
@@ -70,6 +69,6 @@ func (s *rentalService) EndRentBook(bookID, userID int) error {
 	defer func() {
 		go s.eventSender(events.EventEndRental, foundRentalStatus)
 	}()
-	log.Println(foundRentalStatus)
+
 	return nil
 }
