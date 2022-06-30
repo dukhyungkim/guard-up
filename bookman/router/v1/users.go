@@ -21,8 +21,8 @@ func NewUserRouter(userService service.UserService) *UsersRouter {
 	}
 }
 
-func (r *UsersRouter) SetupRouter(router *gin.Engine) {
-	usersGroup := router.Group("/v1/users")
+func (r *UsersRouter) SetupRouter(router *gin.RouterGroup) {
+	usersGroup := router.Group("users")
 	usersGroup.POST("", r.createUser)
 	usersGroup.GET("", r.listUsers)
 	usersGroup.GET(":"+keyUserID, r.getUser)

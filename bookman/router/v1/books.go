@@ -24,8 +24,8 @@ func NewBookRouter(bookService service.BookService, rentalService service.Rental
 	}
 }
 
-func (r *BooksRouter) SetupRouter(router *gin.Engine) {
-	booksGroup := router.Group("/v1/books")
+func (r *BooksRouter) SetupRouter(router *gin.RouterGroup) {
+	booksGroup := router.Group("books")
 	booksGroup.POST("", r.createBook)
 	booksGroup.GET("", r.listBooks)
 	booksGroup.PUT(":"+keyBookID, r.updateBook)
