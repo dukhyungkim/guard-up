@@ -127,9 +127,7 @@ func (r *BooksRouter) getRentStatus(c *gin.Context) {
 		return
 	}
 
-	result := entity.Response[*entity.RentalStatus]{
-		Data: rentStatus,
-	}
+	result := entity.Response[*entity.RentalStatus]{Data: rentStatus}
 	c.JSON(http.StatusOK, result)
 }
 

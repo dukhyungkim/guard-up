@@ -75,7 +75,9 @@ func (r *UsersRouter) getUser(c *gin.Context) {
 		util.ResponseError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, user)
+
+	result := entity.Response[*entity.User]{Data: user}
+	c.JSON(http.StatusOK, result)
 }
 
 func (r *UsersRouter) updateUser(c *gin.Context) {
@@ -97,7 +99,9 @@ func (r *UsersRouter) updateUser(c *gin.Context) {
 		util.ResponseError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, updateUser)
+
+	result := entity.Response[*entity.User]{Data: updateUser}
+	c.JSON(http.StatusOK, result)
 }
 
 func (r *UsersRouter) deleteUser(c *gin.Context) {

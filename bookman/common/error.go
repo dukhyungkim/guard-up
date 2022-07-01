@@ -40,7 +40,7 @@ var (
 
 	ErrNotFoundBook         = newErr(100, "not found book", http.StatusNotFound)
 	ErrNotFoundUser         = newErr(101, "not found user", http.StatusNotFound)
-	ErrNotFoundRentalStatus = newErr(102, "not found rental status", http.StatusNotFound)
+	ErrNotFoundRentalStatus = newErr(102, "not found rental status", http.StatusNoContent)
 	ErrNotFoundBookOrUser   = newErr(102, "not found book or user", http.StatusNotFound)
 
 	ErrStartRent = newErr(200, "cannot start rent", http.StatusBadRequest)
