@@ -29,7 +29,7 @@ func (s *rentalService) StartRentBook(bookID, userID int) (*entity.RentalStatus,
 	rental := entity.RentalStatus{
 		BookID: bookID,
 		UserID: userID,
-		Status: "대여",
+		Status: "대여중",
 		Start:  time.Now().Truncate(time.Second),
 	}
 	saveRental, err := s.rentalRepo.SaveRental(&rental)
