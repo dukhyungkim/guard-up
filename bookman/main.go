@@ -3,6 +3,7 @@ package main
 import (
 	"bookman/config"
 	v1 "bookman/router/v1"
+	v2 "bookman/router/v2"
 	"fmt"
 	"log"
 	"net/http"
@@ -28,6 +29,7 @@ func main() {
 
 	r := setupBaseRouter(opts.ProductionMode)
 	v1.SetupRouter(cfg, r)
+	v2.SetupRouter(cfg, r)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	if err = r.Run(addr); err != nil {
