@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var userRepoInstance UserRepo
+
 type UserRepo interface {
 	SaveUser(user *entity.User) (*entity.User, error)
 	FetchUser(user *entity.User) (*entity.User, error)
@@ -22,10 +24,16 @@ type userRepo struct {
 }
 
 func NewUserRepo(cfg *config.RDB) (UserRepo, error) {
+	if userRepoInstance != nil {
+		return userRepoInstance, nil
+	}
+
 	if err := initClient(cfg); err != nil {
 		return nil, err
 	}
-	return &userRepo{}, nil
+
+	userRepoInstance = &userRepo{}
+	return userRepoInstance, nil
 }
 
 func (r *userRepo) SaveUser(user *entity.User) (*entity.User, error) {

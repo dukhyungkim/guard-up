@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+var rentalServiceInstance RentalService
+
 type RentalService interface {
 	StartRentBook(bookID, userID int) (*entity.RentalStatus, error)
 	GetRentStatus(bookID int) (*entity.RentalStatus, error)
@@ -19,10 +21,15 @@ type rentalService struct {
 }
 
 func NewRentalService(rentalRepo repository.RentalRepo, eventSender events.EventSender) RentalService {
-	return &rentalService{
+	if rentalServiceInstance != nil {
+		return rentalServiceInstance
+	}
+
+	rentalServiceInstance = &rentalService{
 		rentalRepo:  rentalRepo,
 		eventSender: eventSender,
 	}
+	return rentalServiceInstance
 }
 
 func (s *rentalService) StartRentBook(bookID, userID int) (*entity.RentalStatus, error) {

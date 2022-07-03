@@ -6,6 +6,8 @@ import (
 	"bookman/repository"
 )
 
+var bookServiceInstance BookService
+
 type BookService interface {
 	SaveNewBook(book *entity.Book) (*entity.Book, error)
 	ListBooks(pagination *entity.Pagination) ([]*entity.Book, error)
@@ -19,10 +21,15 @@ type bookService struct {
 }
 
 func NewBookService(bookRepo repository.BookRepo, eventSender events.EventSender) BookService {
-	return &bookService{
+	if bookServiceInstance != nil {
+		return bookServiceInstance
+	}
+
+	bookServiceInstance = &bookService{
 		bookRepo:    bookRepo,
 		eventSender: eventSender,
 	}
+	return bookServiceInstance
 }
 
 func (s *bookService) SaveNewBook(book *entity.Book) (*entity.Book, error) {

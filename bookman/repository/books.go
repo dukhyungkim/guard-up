@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var bookRepoInstance BookRepo
+
 type BookRepo interface {
 	SaveBook(book *entity.Book) (*entity.Book, error)
 	FetchBook(book *entity.Book) (*entity.Book, error)
@@ -22,10 +24,16 @@ type bookRepo struct {
 }
 
 func NewBookRepo(cfg *config.RDB) (BookRepo, error) {
+	if bookRepoInstance != nil {
+		return bookRepoInstance, nil
+	}
+
 	if err := initClient(cfg); err != nil {
 		return nil, err
 	}
-	return &bookRepo{}, nil
+
+	bookRepoInstance = &bookRepo{}
+	return bookRepoInstance, nil
 }
 
 func (r *bookRepo) SaveBook(book *entity.Book) (*entity.Book, error) {

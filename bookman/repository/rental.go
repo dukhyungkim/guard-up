@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var rentalRepoInstance RentalRepo
+
 type RentalRepo interface {
 	SaveRental(rental *entity.RentalStatus) (*entity.RentalStatus, error)
 	FetchRentalStatusByBookID(bookID int) (*entity.RentalStatus, error)
@@ -22,10 +24,16 @@ type rentalRepo struct {
 }
 
 func NewRentalRepo(cfg *config.RDB) (RentalRepo, error) {
+	if rentalRepoInstance != nil {
+		return rentalRepoInstance, nil
+	}
+
 	if err := initClient(cfg); err != nil {
 		return nil, err
 	}
-	return &rentalRepo{}, nil
+
+	rentalRepoInstance = &rentalRepo{}
+	return rentalRepoInstance, nil
 }
 
 func (r *rentalRepo) SaveRental(rental *entity.RentalStatus) (*entity.RentalStatus, error) {

@@ -44,4 +44,6 @@ var (
 	ErrNotFoundRentalStatus = newErr(103, "not found rental status", http.StatusNoContent)
 
 	ErrStartRent = newErr(200, "cannot start rent", http.StatusBadRequest)
+
+	ErrNotFoundAction = newErr(300, "not found action", http.StatusBadRequest)
 )

@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var eventManagerInstance *EventManager
+
 type Event struct {
 	Type EventType
 	Data string
@@ -21,12 +23,17 @@ type EventManager struct {
 }
 
 func NewEventManager() *EventManager {
-	return &EventManager{
+	if eventManagerInstance != nil {
+		return eventManagerInstance
+	}
+
+	eventManagerInstance = &EventManager{
 		Message:      make(chan Event),
 		NewClient:    make(chan chan Event),
 		CloseClient:  make(chan chan Event),
 		TotalClients: make(map[chan Event]struct{}),
 	}
+	return eventManagerInstance
 }
 
 func (m *EventManager) HandleEvent() {

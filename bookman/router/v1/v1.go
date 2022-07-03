@@ -10,10 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(cfg *config.Config, r *gin.Engine) {
-	eventManager := events.NewEventManager()
-	go eventManager.HandleEvent()
-
+func SetupRouter(cfg *config.Config, r *gin.Engine, eventManager *events.EventManager) {
 	v1GroupRouter := r.Group("v1")
 
 	bookRepo, err := repository.NewBookRepo(&cfg.Database)

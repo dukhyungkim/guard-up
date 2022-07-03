@@ -6,6 +6,8 @@ import (
 	"bookman/repository"
 )
 
+var userServiceInstance UserService
+
 type UserService interface {
 	SaveNewUser(user *entity.User) (*entity.User, error)
 	ListUsers(pagination *entity.Pagination) ([]*entity.User, error)
@@ -20,10 +22,15 @@ type userService struct {
 }
 
 func NewUserService(userRepo repository.UserRepo, eventSender events.EventSender) UserService {
-	return &userService{
+	if userServiceInstance != nil {
+		return userServiceInstance
+	}
+
+	userServiceInstance = &userService{
 		userRepo:    userRepo,
 		eventSender: eventSender,
 	}
+	return userServiceInstance
 }
 
 func (s *userService) SaveNewUser(user *entity.User) (*entity.User, error) {
