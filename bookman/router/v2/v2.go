@@ -83,10 +83,29 @@ func newActionHandler(upgrader websocket.Upgrader, bookHandler *BookHandler, use
 				result, err = bookHandler.SaveBook(message)
 			case ActionListBooks:
 				result, err = bookHandler.ListBooks(message)
+			case ActionUpdateBook:
+				result, err = bookHandler.UpdateBook(message)
+			case ActionDeleteBook:
+				result, err = bookHandler.DeleteBook(message)
+
+			case ActionBookStatus:
+				result, err = bookHandler.Status(message)
+			case ActionStartRental:
+				result, err = bookHandler.StartRental(message)
+			case ActionEndRental:
+				result, err = bookHandler.EndRental(message)
+
 			case ActionAddUser:
 				result, err = userHandler.SaveUser(message)
 			case ActionListUsers:
 				result, err = userHandler.ListUsers(message)
+			case ActionGetUser:
+				result, err = userHandler.GetUser(message)
+			case ActionUpdateUser:
+				result, err = userHandler.UpdateUser(message)
+			case ActionDeleteUser:
+				result, err = userHandler.DeleteUser(message)
+
 			default:
 				err = common.ErrNotFoundAction(nil)
 			}

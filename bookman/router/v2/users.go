@@ -5,7 +5,6 @@ import (
 	"bookman/service"
 	"bookman/util"
 	"encoding/json"
-	"log"
 )
 
 type UserHandler struct {
@@ -22,19 +21,18 @@ func (h *UserHandler) SaveUser(message []byte) (*ActionResponse[*entity.User], e
 	var request UserActionRequest
 	err := json.Unmarshal(message, &request)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
-	newBook := &entity.User{
-		ID:   123,
-		Name: request.User.Name,
+	newUser, err := h.userService.SaveNewUser(&request.User)
+	if err != nil {
+		return nil, err
 	}
 
 	return &ActionResponse[*entity.User]{
 		Action: request.Action,
 		Response: &entity.Response[*entity.User]{
-			Data: newBook,
+			Data: newUser,
 		},
 	}, nil
 }
@@ -43,7 +41,6 @@ func (h *UserHandler) ListUsers(message []byte) (*PaginatedActionResponse[*entit
 	var request PaginatedFetchRequest
 	err := json.Unmarshal(message, &request)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
@@ -63,4 +60,61 @@ func (h *UserHandler) ListUsers(message []byte) (*PaginatedActionResponse[*entit
 			Data:       users,
 		},
 	}, nil
+}
+
+func (h *UserHandler) GetUser(message []byte) (*ActionResponse[*entity.User], error) {
+	var request UserActionRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	request.User.ID = request.UserID
+	user, err := h.userService.GetUser(&request.User)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ActionResponse[*entity.User]{
+		Action: request.Action,
+		Response: &entity.Response[*entity.User]{
+			Data: user,
+		},
+	}, nil
+}
+
+func (h *UserHandler) UpdateUser(message []byte) (*ActionResponse[*entity.User], error) {
+	var request UserActionRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	request.User.ID = request.UserID
+	updateUser, err := h.userService.UpdateUser(&request.User)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ActionResponse[*entity.User]{
+		Action: request.Action,
+		Response: &entity.Response[*entity.User]{
+			Data: updateUser,
+		},
+	}, nil
+}
+
+func (h *UserHandler) DeleteUser(message []byte) (*MessageOKResponse, error) {
+	var request UserActionRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.userService.DeleteUser(request.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewMessageOKResponse(request.Action), nil
 }

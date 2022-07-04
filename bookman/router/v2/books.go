@@ -1,11 +1,12 @@
 package v2
 
 import (
+	"bookman/common"
 	"bookman/entity"
 	"bookman/service"
 	"bookman/util"
 	"encoding/json"
-	"log"
+	"errors"
 )
 
 type BookHandler struct {
@@ -24,15 +25,12 @@ func (h *BookHandler) SaveBook(message []byte) (*ActionResponse[*entity.Book], e
 	var request BookActionRequest
 	err := json.Unmarshal(message, &request)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
-	newBook := &entity.Book{
-		ID:      123,
-		Name:    request.Book.Name,
-		Authors: request.Book.Authors,
-		Image:   request.Book.Image,
+	newBook, err := h.bookService.SaveNewBook(&request.Book)
+	if err != nil {
+		return nil, err
 	}
 
 	return &ActionResponse[*entity.Book]{
@@ -47,7 +45,6 @@ func (h *BookHandler) ListBooks(message []byte) (*PaginatedActionResponse[*entit
 	var request PaginatedFetchRequest
 	err := json.Unmarshal(message, &request)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
@@ -66,5 +63,107 @@ func (h *BookHandler) ListBooks(message []byte) (*PaginatedActionResponse[*entit
 			Pagination: &request.Pagination,
 			Data:       books,
 		},
+	}, nil
+}
+
+func (h *BookHandler) UpdateBook(message []byte) (*ActionResponse[*entity.Book], error) {
+	var request BookActionRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Book.ID = request.BookID
+	updateBook, err := h.bookService.UpdateBook(&request.Book)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ActionResponse[*entity.Book]{
+		Action: request.Action,
+		Response: &entity.Response[*entity.Book]{
+			Data: updateBook,
+		},
+	}, nil
+}
+
+func (h *BookHandler) DeleteBook(message []byte) (*MessageOKResponse, error) {
+	var request BookActionRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.bookService.DeleteBook(request.BookID)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewMessageOKResponse(request.Action), nil
+}
+
+func (h *BookHandler) Status(message []byte) (*ActionResponse[*entity.RentalStatus], error) {
+	var request BookActionRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	rentalStatus, err := h.rentalService.GetRentStatus(request.BookID)
+	if err != nil {
+		customErr := &common.Err{}
+		if errors.As(err, &customErr) {
+			if customErr.Code == common.ErrNotFoundRentalStatus(nil).Code {
+				return &ActionResponse[*entity.RentalStatus]{
+					Action: request.Action,
+				}, nil
+			}
+		}
+
+		return nil, err
+	}
+
+	return &ActionResponse[*entity.RentalStatus]{
+		Action: request.Action,
+		Response: &entity.Response[*entity.RentalStatus]{
+			Data: rentalStatus,
+		},
+	}, nil
+}
+
+func (h *BookHandler) StartRental(message []byte) (*ActionResponse[*entity.RentalStatus], error) {
+	var request RentalRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	rentalStatus, err := h.rentalService.StartRentBook(request.BookID, request.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ActionResponse[*entity.RentalStatus]{
+		Action: request.Action,
+		Response: &entity.Response[*entity.RentalStatus]{
+			Data: rentalStatus,
+		},
+	}, nil
+}
+
+func (h *BookHandler) EndRental(message []byte) (*ActionResponse[*entity.RentalStatus], error) {
+	var request RentalRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.rentalService.EndRentBook(request.BookID, request.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ActionResponse[*entity.RentalStatus]{
+		Action: request.Action,
 	}, nil
 }

@@ -33,7 +33,7 @@ func paginate(value any, pagination *entity.Pagination) func(db *gorm.DB) *gorm.
 	pagination.Total = int(total)
 
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(pagination.Offset).Limit(pagination.Limit)
+		return db.Offset(pagination.Offset).Limit(pagination.Limit).Order("id asc")
 	}
 }
 

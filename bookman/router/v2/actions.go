@@ -14,7 +14,7 @@ const (
 	ActionAddBook    ActionType = "ADD_BOOK"
 	ActionListBooks  ActionType = "LIST_BOOKS"
 	ActionUpdateBook ActionType = "UPDATE_BOOK"
-	ActionDeleteBOOK ActionType = "DELETE_BOOK"
+	ActionDeleteBook ActionType = "DELETE_BOOK"
 
 	ActionBookStatus  ActionType = "BOOK_STATUS"
 	ActionStartRental ActionType = "START_RENTAL"
@@ -23,7 +23,7 @@ const (
 	ActionAddUser    ActionType = "ADD_USER"
 	ActionListUsers  ActionType = "LIST_USERS"
 	ActionGetUser    ActionType = "GET_USER"
-	ActionUpdateUSer ActionType = "UPDATE_USER"
+	ActionUpdateUser ActionType = "UPDATE_USER"
 	ActionDeleteUser ActionType = "DELETE_USER"
 )
 
@@ -62,4 +62,16 @@ type ActionResponse[T any] struct {
 type PaginatedActionResponse[T any] struct {
 	Action ActionType `json:"action"`
 	*entity.PaginatedResponse[T]
+}
+
+type MessageOKResponse struct {
+	Action  ActionType `json:"action"`
+	Message string     `json:"message"`
+}
+
+func NewMessageOKResponse(action ActionType) *MessageOKResponse {
+	return &MessageOKResponse{
+		Action:  action,
+		Message: "OK",
+	}
 }
