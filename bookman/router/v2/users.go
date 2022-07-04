@@ -32,8 +32,8 @@ func (h *UserHandler) SaveUser(message []byte) (*ActionResponse[*entity.User], e
 	}
 
 	return &ActionResponse[*entity.User]{
-		request.Action,
-		&entity.Response[*entity.User]{
+		Action: request.Action,
+		Response: &entity.Response[*entity.User]{
 			Data: newBook,
 		},
 	}, nil
@@ -51,21 +51,16 @@ func (h *UserHandler) ListUsers(message []byte) (*PaginatedActionResponse[*entit
 		request.Pagination.Limit = util.DefaultLimit
 	}
 
-	request.Pagination.Total = 2
+	users, err := h.userService.ListUsers(&request.Pagination)
+	if err != nil {
+		return nil, err
+	}
+
 	return &PaginatedActionResponse[*entity.User]{
 		Action: request.Action,
 		PaginatedResponse: &entity.PaginatedResponse[*entity.User]{
 			Pagination: &request.Pagination,
-			Data: []*entity.User{
-				{
-					ID:   123,
-					Name: "asdf",
-				},
-				{
-					ID:   567,
-					Name: "zxcv",
-				},
-			},
+			Data:       users,
 		},
 	}, nil
 }

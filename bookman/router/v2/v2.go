@@ -51,6 +51,7 @@ func newActionHandler(upgrader websocket.Upgrader, bookHandler *BookHandler, use
 			log.Println(err)
 			return
 		}
+		log.Println("websocket: new client connected")
 		defer func() {
 			if err = ws.Close(); err != nil {
 				log.Println(err)
@@ -80,6 +81,8 @@ func newActionHandler(upgrader websocket.Upgrader, bookHandler *BookHandler, use
 			switch actionRequest.Action {
 			case ActionAddBook:
 				result, err = bookHandler.SaveBook(message)
+			case ActionListBooks:
+				result, err = bookHandler.ListBooks(message)
 			case ActionAddUser:
 				result, err = userHandler.SaveUser(message)
 			case ActionListUsers:

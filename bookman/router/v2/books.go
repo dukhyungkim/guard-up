@@ -3,6 +3,7 @@ package v2
 import (
 	"bookman/entity"
 	"bookman/service"
+	"bookman/util"
 	"encoding/json"
 	"log"
 )
@@ -35,9 +36,35 @@ func (h *BookHandler) SaveBook(message []byte) (*ActionResponse[*entity.Book], e
 	}
 
 	return &ActionResponse[*entity.Book]{
-		request.Action,
-		&entity.Response[*entity.Book]{
+		Action: request.Action,
+		Response: &entity.Response[*entity.Book]{
 			Data: newBook,
+		},
+	}, nil
+}
+
+func (h *BookHandler) ListBooks(message []byte) (*PaginatedActionResponse[*entity.Book], error) {
+	var request PaginatedFetchRequest
+	err := json.Unmarshal(message, &request)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if request.Pagination.Limit == 0 {
+		request.Pagination.Limit = util.DefaultLimit
+	}
+
+	books, err := h.bookService.ListBooks(&request.Pagination)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PaginatedActionResponse[*entity.Book]{
+		Action: request.Action,
+		PaginatedResponse: &entity.PaginatedResponse[*entity.Book]{
+			Pagination: &request.Pagination,
+			Data:       books,
 		},
 	}, nil
 }
