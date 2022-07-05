@@ -5,6 +5,7 @@ import (
 	"bookman/events"
 	v1 "bookman/router/v1"
 	v2 "bookman/router/v2"
+	v3 "bookman/router/v3"
 	"fmt"
 	"log"
 	"net/http"
@@ -35,6 +36,12 @@ func main() {
 
 	v1.SetupRouter(cfg, r, eventManager)
 	v2.SetupRouter(cfg, r, eventManager)
+	socketIOServer := v3.SetupRouter(cfg, r, eventManager)
+	defer func() {
+		if err = socketIOServer.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	if err = r.Run(addr); err != nil {
