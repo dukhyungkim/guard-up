@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "stream/proto";
+
+import "google/api/annotations.proto";
+
+service StreamService {
+  rpc StreamNumber (NumberRequest) returns (stream Response) {
+    option (google.api.http) = {
+      get: "/v1/stream/number"
+    };
+  }
+
+  rpc StreamPerson (stream Person) returns (Response) {
+    option (google.api.http) = {
+      post: "/v1/stream/person"
+    };
+  }
+
+  rpc StreamHello (stream Person) returns (stream Response) {
+    option (google.api.http) = {
+      post: "/v1/stream/hello"
+    };
+  }
+}
+
+message NumberRequest {
+  int32 from = 1;
+  int32 count = 2;
+}
+
+message Person {
+  string name = 1;
+}
+
+message Response {
+  string result = 1;
+}
