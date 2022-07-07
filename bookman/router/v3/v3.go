@@ -3,6 +3,10 @@ package v3
 import (
 	"bookman/config"
 	"bookman/events"
+	"bookman/repository"
+	v2 "bookman/router/v2"
+	"bookman/service"
+	"encoding/json"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -12,10 +16,30 @@ import (
 func SetupRouter(cfg *config.Config, r *gin.Engine, eventManager *events.EventManager) *socketio.Server {
 	v3GroupRouter := r.Group("v3")
 
-	server := setupSocketIOServer(v3GroupRouter.BasePath())
+	bookRepo, err := repository.NewBookRepo(&cfg.Database)
+	if err != nil {
+		log.Panicln(err)
+	}
+	bookService := service.NewBookService(bookRepo, eventManager.SendEvent)
+
+	rentalRepo, err := repository.NewRentalRepo(&cfg.Database)
+	if err != nil {
+		log.Panicln(err)
+	}
+	rentalService := service.NewRentalService(rentalRepo, eventManager.SendEvent)
+	bookHandler := NewBookHandler(bookService, rentalService)
+
+	userRepo, err := repository.NewUserRepo(&cfg.Database)
+	if err != nil {
+		log.Panicln(err)
+	}
+	userService := service.NewUserService(userRepo, eventManager.SendEvent)
+	userHandler := NewUserHandler(userService)
+
+	server := setupSocketIOServer(v3GroupRouter.BasePath(), bookHandler, userHandler)
 	go func() {
-		if err := server.Serve(); err != nil {
-			log.Fatalf("socketio listen error: %s\n", err)
+		if err = server.Serve(); err != nil {
+			log.Panicf("socketio listen error: %s\n", err)
 		}
 	}()
 
@@ -25,7 +49,9 @@ func SetupRouter(cfg *config.Config, r *gin.Engine, eventManager *events.EventMa
 	return server
 }
 
-func setupSocketIOServer(basePath string) *socketio.Server {
+const EventReply = "reply"
+
+func setupSocketIOServer(basePath string, bookHandler *BookHandler, userHandler *UserHandler) *socketio.Server {
 	server := socketio.NewServer(nil)
 
 	server.OnConnect("/", func(s socketio.Conn) error {
@@ -34,7 +60,10 @@ func setupSocketIOServer(basePath string) *socketio.Server {
 		return nil
 	})
 
-	server.OnEvent(basePath+"/", "echo", func(s socketio.Conn, msg string) {
+	server.OnEvent(basePath+"/action", v2.ActionListBooks.String(), bookHandler.ListBooks)
+	server.OnEvent(basePath+"/action", v2.ActionListUsers.String(), userHandler.ListUsers)
+
+	server.OnEvent(basePath+"/notify", "", func(s socketio.Conn, msg string) {
 		log.Println("echo:", msg)
 		s.Emit("reply", "echo "+msg)
 	})
@@ -48,4 +77,9 @@ func setupSocketIOServer(basePath string) *socketio.Server {
 	})
 
 	return server
+}
+
+func sendReply[T any](s socketio.Conn, response T) {
+	b, _ := json.Marshal(response)
+	s.Emit(EventReply, string(b))
 }
