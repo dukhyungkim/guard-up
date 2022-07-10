@@ -1,10 +1,11 @@
 package v3
 
 import (
+	"bookman/common"
 	"bookman/entity"
 	"bookman/service"
 	"bookman/util"
-	"log"
+	"encoding/json"
 
 	socketio "github.com/googollee/go-socket.io"
 )
@@ -21,16 +22,36 @@ func NewBookHandler(bookService service.BookService, rentalService service.Renta
 	}
 }
 
+func (h *BookHandler) CreateBook(s socketio.Conn, msg string) {
+	var book entity.Book
+	err := json.Unmarshal([]byte(msg), &book)
+	if err != nil {
+		sendReply(s, common.ErrInvalidRequestBody(err))
+		return
+	}
+
+	newBook, err := h.bookService.SaveNewBook(&book)
+	if err != nil {
+		sendReply(s, err)
+		return
+	}
+
+	response := &entity.Response[*entity.Book]{
+		Data: newBook,
+	}
+	sendReply(s, response)
+}
+
 func (h *BookHandler) ListBooks(s socketio.Conn, msg string) {
 	pagination, err := util.NewPaginationFromMessage(msg)
 	if err != nil {
-		log.Println(err)
+		sendReply(s, common.ErrInvalidParam(err))
 		return
 	}
 
 	books, err := h.bookService.ListBooks(pagination)
 	if err != nil {
-		log.Println(err)
+		sendReply(s, err)
 		return
 	}
 
@@ -39,4 +60,12 @@ func (h *BookHandler) ListBooks(s socketio.Conn, msg string) {
 		Data:       books,
 	}
 	sendReply(s, response)
+}
+
+func (h *BookHandler) UpdateBook(s socketio.Conn, msg string) {
+
+}
+
+func (h *BookHandler) DeleteBook(s socketio.Conn, msg string) {
+
 }

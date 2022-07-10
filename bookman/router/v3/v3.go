@@ -60,7 +60,11 @@ func setupSocketIOServer(basePath string, bookHandler *BookHandler, userHandler 
 		return nil
 	})
 
+	server.OnEvent(basePath+"/action", v2.ActionAddBook.String(), bookHandler.CreateBook)
 	server.OnEvent(basePath+"/action", v2.ActionListBooks.String(), bookHandler.ListBooks)
+	server.OnEvent(basePath+"/action", v2.ActionUpdateBook.String(), bookHandler.UpdateBook)
+	server.OnEvent(basePath+"/action", v2.ActionDeleteBook.String(), bookHandler.DeleteBook)
+
 	server.OnEvent(basePath+"/action", v2.ActionListUsers.String(), userHandler.ListUsers)
 
 	server.OnEvent(basePath+"/notify", "", func(s socketio.Conn, msg string) {
