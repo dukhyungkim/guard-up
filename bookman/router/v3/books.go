@@ -63,9 +63,46 @@ func (h *BookHandler) ListBooks(s socketio.Conn, msg string) {
 }
 
 func (h *BookHandler) UpdateBook(s socketio.Conn, msg string) {
+	var book entity.Book
+	err := json.Unmarshal([]byte(msg), &book)
+	if err != nil {
+		sendReply(s, common.ErrInvalidRequestBody(err))
+		return
+	}
 
+	newBook, err := h.bookService.UpdateBook(&book)
+	if err != nil {
+		sendReply(s, err)
+		return
+	}
+
+	response := &entity.Response[*entity.Book]{
+		Data: newBook,
+	}
+	sendReply(s, response)
 }
 
 func (h *BookHandler) DeleteBook(s socketio.Conn, msg string) {
+	var bookID = struct {
+		BookID int `json:"bookId"`
+	}{}
+	err := json.Unmarshal([]byte(msg), &bookID)
+	if err != nil {
+		sendReply(s, common.ErrInvalidRequestBody(err))
+		return
+	}
 
+	err = h.bookService.DeleteBook(bookID.BookID)
+	if err != nil {
+		sendReply(s, err)
+		return
+	}
+
+	response := &struct {
+		Message string `json:"message"`
+	}{
+		Message: "OK",
+	}
+
+	sendReply(s, response)
 }
