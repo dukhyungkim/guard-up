@@ -49,18 +49,14 @@ func main() {
 	}
 }
 
-func setupBaseRouter(isActivateProdMode bool) *gin.Engine {
-	if isActivateProdMode {
+func setupBaseRouter(prodMode bool) *gin.Engine {
+	if prodMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	r := gin.Default()
 
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowAllOrigins = true
-	corsConfig.AllowMethods = []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodHead}
-
-	r.Use(cors.New(corsConfig))
+	r.Use(newCorsConfig())
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -69,4 +65,11 @@ func setupBaseRouter(isActivateProdMode bool) *gin.Engine {
 	})
 
 	return r
+}
+
+func newCorsConfig() gin.HandlerFunc {
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowMethods = []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodHead}
+	return cors.New(corsConfig)
 }
