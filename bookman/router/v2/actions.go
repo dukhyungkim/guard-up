@@ -50,8 +50,7 @@ type PaginatedFetchRequest struct {
 
 type RentalRequest struct {
 	ActionRequest
-	BookID int `json:"bookId"`
-	UserID int `json:"userId"`
+	entity.BookRentalRequest
 }
 
 type ActionResponse[T any] struct {
@@ -65,13 +64,13 @@ type PaginatedActionResponse[T any] struct {
 }
 
 type MessageOKResponse struct {
-	Action  ActionType `json:"action"`
-	Message string     `json:"message"`
+	Action ActionType `json:"action"`
+	entity.MessageResponse
 }
 
 func NewMessageOKResponse(action ActionType) *MessageOKResponse {
 	return &MessageOKResponse{
-		Action:  action,
-		Message: "OK",
+		Action:          action,
+		MessageResponse: entity.MessageResponseOK,
 	}
 }

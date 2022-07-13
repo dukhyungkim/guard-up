@@ -12,3 +12,8 @@ type RentalStatus struct {
 func (RentalStatus) TableName() string {
 	return "rental"
 }
+
+type BookRentalRequest struct {
+	BookID int `json:"bookId"`
+	UserID int `json:"userId"`
+}

@@ -83,26 +83,55 @@ func (h *BookHandler) UpdateBook(s socketio.Conn, msg string) {
 }
 
 func (h *BookHandler) DeleteBook(s socketio.Conn, msg string) {
-	var bookID = struct {
-		BookID int `json:"bookId"`
-	}{}
-	err := json.Unmarshal([]byte(msg), &bookID)
+	var book entity.Book
+	err := json.Unmarshal([]byte(msg), &book)
 	if err != nil {
 		sendReply(s, common.ErrInvalidRequestBody(err))
 		return
 	}
 
-	err = h.bookService.DeleteBook(bookID.BookID)
+	err = h.bookService.DeleteBook(book.ID)
 	if err != nil {
 		sendReply(s, err)
 		return
 	}
 
-	response := &struct {
-		Message string `json:"message"`
-	}{
-		Message: "OK",
+	sendReply(s, entity.MessageResponseOK)
+}
+
+func (h *BookHandler) StartRental(s socketio.Conn, msg string) {
+	var rentalRequest entity.BookRentalRequest
+	err := json.Unmarshal([]byte(msg), &rentalRequest)
+	if err != nil {
+		sendReply(s, common.ErrInvalidRequestBody(err))
+		return
 	}
 
+	rentalStatus, err := h.rentalService.StartRentBook(rentalRequest.BookID, rentalRequest.UserID)
+	if err != nil {
+		sendReply(s, err)
+		return
+	}
+
+	response := &entity.Response[*entity.RentalStatus]{
+		Data: rentalStatus,
+	}
 	sendReply(s, response)
+}
+
+func (h *BookHandler) EndRental(s socketio.Conn, msg string) {
+	var rentalRequest entity.BookRentalRequest
+	err := json.Unmarshal([]byte(msg), &rentalRequest)
+	if err != nil {
+		sendReply(s, common.ErrInvalidRequestBody(err))
+		return
+	}
+
+	err = h.rentalService.EndRentBook(rentalRequest.BookID, rentalRequest.UserID)
+	if err != nil {
+		sendReply(s, err)
+		return
+	}
+
+	sendReply(s, entity.MessageResponseOK)
 }

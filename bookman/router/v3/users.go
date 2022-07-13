@@ -104,26 +104,18 @@ func (h *UserHandler) UpdateUser(s socketio.Conn, msg string) {
 }
 
 func (h *UserHandler) DeleteUser(s socketio.Conn, msg string) {
-	var userID = struct {
-		UserID int `json:"userId"`
-	}{}
-	err := json.Unmarshal([]byte(msg), &userID)
+	var user entity.User
+	err := json.Unmarshal([]byte(msg), &user)
 	if err != nil {
 		sendReply(s, common.ErrInvalidRequestBody(err))
 		return
 	}
 
-	err = h.userService.DeleteUser(userID.UserID)
+	err = h.userService.DeleteUser(user.ID)
 	if err != nil {
 		sendReply(s, err)
 		return
 	}
 
-	response := &struct {
-		Message string `json:"message"`
-	}{
-		Message: "OK",
-	}
-
-	sendReply(s, response)
+	sendReply(s, entity.MessageResponseOK)
 }
