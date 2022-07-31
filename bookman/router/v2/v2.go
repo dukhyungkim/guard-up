@@ -8,6 +8,7 @@ import (
 	"bookman/service"
 	"encoding/json"
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -37,7 +38,11 @@ func SetupRouter(cfg *config.Config, r *gin.Engine, eventManager *events.EventMa
 	userService := service.NewUserService(userRepo, eventManager.SendEvent)
 	userHandler := NewUserHandler(userService)
 
-	upgrader := websocket.Upgrader{}
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
 
 	v2GroupRouter.GET("action", newActionHandler(upgrader, bookHandler, userHandler))
 	v2GroupRouter.GET("event", eventManager.HandleWebsocketNotify(upgrader))
